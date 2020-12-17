@@ -1,49 +1,47 @@
-var h = window.innerHeight;
-
-document.querySelector("body").setAttribute("style", "height:" + h);
-
 const LIMIT = 5;
+
+setBodyHeight();
+
 let user = {
   canAddItem: true,
   items: [],
 };
 
-addItemToItems = addListItem();
-
 getSelectedElement("login").onclick = function () {
   user.userName = getInputElementFromForm("login-form", "user-name");
 
-  if (user.userName) {
-    users = JSON.parse(localStorage.getItem("users"));
-
-    if (users && users[user.userName]) {
-      user = users[user.userName];
-      let strHtml = "";
-
-      if (user.limit !== 5) {
-        user.items.forEach((element) => {
-          strHtml = strHtml + createListItem(element);
-        });
-      }
-
-      document
-        .getElementById("listContainer")
-        .insertAdjacentHTML("beforeend", strHtml);
-    }
-
-    getSelectedElement("loggedIn").classList.remove("hide");
-    getSelectedElement("loginContainer").classList.add("hide");
-    getSelectedElement("heading").innerHTML =
-      "Welcome " + user.userName + " to your grocery list";
-
-    if (false === user.canAddItem) {
-      warningAndDisableButton();
-    }
-
-    getSelectedElement("limit").innerHTML = LIMIT - user.items.length;
-  } else {
-    getSelectedElement("required-field-user").classList.remove("hide");
+  if (user.userName === "") {
+    removeHtmlClass("required-field-user", "hide");
+    return;
   }
+  
+  users = getUsers();
+
+  if (users && users[user.userName]) {
+    user = users[user.userName];
+    let strHtml = "";
+
+    if (user.limit !== 5) {
+      user.items.forEach((element) => {
+        strHtml = strHtml + createListItem(element);
+      });
+    }
+
+    getSelectedElement("listContainer").insertAdjacentHTML(
+      "beforeend",
+      strHtml
+    );
+  }
+
+  removeHtmlClass("loggedIn", "hide");
+  addHtmlClass("loginContainer", "hide");
+  setInnerHtml("heading", "Welcome " + user.userName + " to your grocery list");
+
+  if (false === user.canAddItem) {
+    warningAndDisableButton();
+  }
+
+  setLimitHtml(LIMIT - user.items.length);
 };
 
 function createListItem(element) {
@@ -70,74 +68,75 @@ getSelectedElement("save").onclick = function () {
   save();
 };
 
-function addListItem() {
-  return function addToArray() {
-    let formData = new FormData(getSelectedElement("grocerry-form"));
-    let item = formData.get("item");
+// function addListItem() {
+function addItemToItems() {
+  let item = getInputElementFromForm("grocerry-form", "item");
 
-    if (item) {
-      addHtmlClass("required-field", "hide");
+  if (item) {
+    addHtmlClass("required-field", "hide");
 
-      if (false === compareListItems(item)) {
-        addHtmlClass("existing-item", "hide");
+    if (false === compareListItems(item)) {
+      addHtmlClass("existing-item", "hide");
 
-        let strHtml = createListItem(item);
+      let strHtml = createListItem(item);
 
-        document
-          .getElementById("listContainer")
-          .insertAdjacentHTML("beforeend", strHtml);
+      getSelectedElement("listContainer").insertAdjacentHTML(
+        "beforeend",
+        strHtml
+      );
 
-        user.items.push(item);
+      user.items.push(item);
 
-        user.limit = LIMIT - user.items.length;
-        getSelectedElement("limit").innerHTML = user.limit;
+      user.limit = LIMIT - user.items.length;
+      setLimitHtml(user.limit);
 
-        if (5 === user.items.length) {
-          user.canAddItem = false;
-          warningAndDisableButton();
-        }
-        console.log(user);
-      } else {
-        getSelectedElement("existing-item").classList.remove("hide");
+      if (5 === user.items.length) {
+        user.canAddItem = false;
+        warningAndDisableButton();
       }
+      console.log(user);
     } else {
-      getSelectedElement("required-field").classList.remove("hide");
+      removeHtmlClass("existing-item", "hide");
     }
-  };
+  } else {
+    removeHtmlClass("required-field", "hide");
+  }
 }
+// }
 
 function compareListItems(item) {
   return user.items.includes(item);
 }
 
 function warningAndDisableButton() {
-  getSelectedElement("warning-message").classList.remove("hide");
+  removeHtmlClass("warning-message", "hide");
 }
 
 function save() {
   let users = {};
 
-  if (localStorage.getItem("users")) {
-    users = JSON.parse(localStorage.getItem("users"));
+  if (getUsers(false)) {
+    users = getUsers();
   }
 
   let key = user.userName;
   users[key] = user;
 
   console.log(JSON.stringify(users));
-  localStorage.setItem("users", JSON.stringify(users));
-  users = JSON.parse(localStorage.getItem("users"));
+  setUsers(users);
+
+  users = getUsers(true);
   keys = Object.keys(users);
   let usersCount = keys.length;
 
   if (4 === usersCount) {
-    deleteAndUpdateUsers(users, keys, usersCount);
+    deleteAndUpdateUsers(users, keys);
   }
 }
 
-function deleteAndUpdateUsers(users, keys, count) {
+function deleteAndUpdateUsers(users, keys) {
   delete users[keys[0]];
-  localStorage.setItem("users", JSON.stringify(users));
+  setUsers(users);
 }
 
 function deleteItem(element) {
@@ -152,7 +151,7 @@ function deleteItem(element) {
   }
 
   getSelectedElement("delete-" + element).parentNode.parentNode.remove();
-  getSelectedElement("limit").innerHTML = user.limit;
+  setLimitHtml(user.limit);
 
   save();
 }
@@ -168,4 +167,33 @@ function getInputElementFromForm(form, input) {
 
 function addHtmlClass(element, className) {
   getSelectedElement(element).classList.add(className);
+}
+
+function removeHtmlClass(element, className) {
+  getSelectedElement(element).classList.remove(className);
+}
+
+function setBodyHeight() {
+  let h = window.innerHeight;
+  document.querySelector("body").setAttribute("style", "height:" + h);
+}
+
+function setInnerHtml(element, html) {
+  getSelectedElement(element).innerHTML = html;
+}
+
+function setLimitHtml(html) {
+  setInnerHtml("limit", html);
+}
+
+function getUsers(isParsed = true) {
+  if (true === isParsed) {
+    return JSON.parse(localStorage.getItem("users"));
+  }
+
+  return localStorage.getItem("users");
+}
+
+function setUsers(users) {
+  localStorage.setItem("users", JSON.stringify(users));
 }
