@@ -14,7 +14,7 @@ getSelectedElement("login").onclick = function () {
     removeHtmlClass("required-field-user", "hide");
     return;
   }
-  
+
   users = getUsers();
 
   if (users && users[user.userName]) {
@@ -68,7 +68,7 @@ getSelectedElement("save").onclick = function () {
   save();
 };
 
-// function addListItem() {
+
 function addItemToItems() {
   let item = getInputElementFromForm("grocerry-form", "item");
 
@@ -102,7 +102,6 @@ function addItemToItems() {
     removeHtmlClass("required-field", "hide");
   }
 }
-// }
 
 function compareListItems(item) {
   return user.items.includes(item);

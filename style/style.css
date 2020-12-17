@@ -89,8 +89,6 @@
   }
 
   #grocerry-form {
-    /* background-color: red;
-        height: 25%; */
     display: flex;
     margin: 2% 0 2% 0%;
   }
@@ -116,9 +114,6 @@
       top: -100%;
     }
 
-    /* 25%  {background-color:yellow; left:25%; top:25%;}
-        50%  {background-color:blue; left:50%; top:50%;}
-        75%  {background-color:green; left:75%; top:75%;}  */
     100% {
       background-color: honeydew;
       left: 0%;
